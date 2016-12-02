@@ -16,6 +16,7 @@ import java.util.TimerTask;
 public class MyService extends Service {
     private Timer timer;
     private NotificationManager nmgr;
+    private int i;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -31,7 +32,8 @@ public class MyService extends Service {
         nmgr = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
 
         timer = new Timer();
-        timer.schedule(new MyTask(), 10*1000);
+        timer.schedule(new MyTask(), 3*1000, 3*1000);
+        timer.schedule(new CancelTask(), 20*1000);
     }
 
     private class MyTask extends TimerTask {
@@ -41,11 +43,25 @@ public class MyService extends Service {
         }
     }
 
+    private class CancelTask extends TimerTask {
+        @Override
+        public void run() {
+            if (timer != null){
+                timer.purge();
+                timer.cancel();
+                timer = null;
+            }
+        }
+    }
+
     private void sendNotice(){
+
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(this)
                         .setSmallIcon(R.drawable.ball0)
-                        .setContentTitle("重要訊息")
+                        .setAutoCancel(true)
+                        .setTicker("你看不到...")
+                        .setContentTitle("重要訊息:" + i)
                         .setContentText("期末考成績公布");
 
         Intent resultIntent = new Intent(this, NoticeActivity.class);
@@ -60,8 +76,8 @@ public class MyService extends Service {
         mBuilder.setContentIntent(resultPendingIntent);
 
         Notification notification = mBuilder.build();
-        nmgr.notify(1, notification);
-
+        nmgr.notify(7, notification);
+        i++;
     }
 
 }
